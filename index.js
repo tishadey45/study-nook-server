@@ -56,6 +56,24 @@ async function run() {
         const result = await roomCollection.deleteOne(query);
         res.send(result);
     })
+
+    app.put("/api/rooms/:id", async (req,res)=>{
+        const id = req.params.id;
+        console.log(id);
+        const filter = {_id: new ObjectId(id)};
+        const upDatedRoom = req.body;
+        const upDateDoc = {
+            $set:{
+                room_name: upDatedRoom.room_name,
+                floor: upDatedRoom.floor,
+                capacity: upDatedRoom.capacity,
+                hourly_rate: upDatedRoom.hourly_rate,
+            }
+        }
+        const options = {upsert: true};
+        const result =await roomCollection.updateOne(filter,upDateDoc,options);
+        res.send(result);
+    })
   } finally {
   }
 }
