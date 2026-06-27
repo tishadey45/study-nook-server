@@ -9,7 +9,12 @@ const port = process.env.PORT || 5000;
 
 //  middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors(
+  ({
+    origin: ["http://localhost:3000","https://study-nook-client.vercel.app"],
+    credentials: true,
+  })
+));
 app.use(cookieParser());
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
