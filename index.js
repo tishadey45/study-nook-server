@@ -3,19 +3,36 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const cloudinary = require("cloudinary").v2;
+const multer = require("multer");
+const fs = require("fs-extra");
 
 const app = express();
 const port = process.env.PORT || 5000;
 
 //  middleware
-app.use(express.json());
-app.use(cors(
-  ({
-    origin: ["http://localhost:3000","https://study-nook-client.vercel.app"],
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://study-nook-client.vercel.app"],
     credentials: true,
-  })
-));
+  }),
+);
+
+app.use(express.json());
 app.use(cookieParser());
+
+// cloudinary configuration
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+//multer configuration
+const upload = multer({
+  dest: "uploads/",
+});
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.d2ts7wd.mongodb.net/?appName=Cluster0`;
@@ -29,20 +46,21 @@ const client = new MongoClient(uri, {
 });
 
 // verify token
-function verifyToken(req, res,next){
-    const token = req.cookies.token;
-    console.log(token);
-    if(!token){
-        return res.status(401).send({error:true,message: 'Unauthorized access'});
-
+function verifyToken(req, res, next) {
+  const token = req.cookies.token;
+  console.log(token);
+  if (!token) {
+    return res
+      .status(401)
+      .send({ error: true, message: "Unauthorized access" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ error: true, message: "Forbidden access" });
     }
-    jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,function(err,decoded){
-        if(err){
-            return res.status(403).send({error:true,message:"Forbidden access"});
-        }
-        req.decoded = decoded;
-        next();
-    })
+    req.decoded = decoded;
+    next();
+  });
 }
 
 async function run() {
@@ -70,11 +88,30 @@ async function run() {
         .send({ success: true });
     });
 
-    app.post("/add-room", async (req, res) => {
-      const user = req.body;
-      console.log(user);
-      const result = await roomCollection.insertOne(user);
-      res.send(result);
+    // app.post("/add-room", async (req, res) => {
+    //   const user = req.body;
+    //   console.log(user);
+    //   const result = await roomCollection.insertOne(user);
+    //   res.send(result);
+    // });
+
+    app.post("/add-room", upload.single("image"), async (req, res) => {
+      try {
+        const image = await cloudinary.uploader.upload(req.file.path, {
+          folder: "study-nook",
+        });
+        await fs.remove(req.file.path);
+        req.body.image = image.secure_url;
+        req.body.organizer = JSON.parse(req.body.organizer);
+        req.body.amenities = JSON.parse(req.body.amenities);
+        const rooms = req.body;
+        // console.log("rooms",rooms)
+        const result = await roomCollection.insertOne(rooms);
+        res.send(result);
+      } catch (error) {
+        console.error("Error occurred while adding room:", error);
+        res.status(500).send({ error: true, message: "Internal server error" });
+      }
     });
 
     app.get("/rooms", async (req, res) => {
@@ -87,6 +124,14 @@ async function run() {
       console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await roomCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.get("/my-listings/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      const query = { "organizer.email": email };
+      const result = await roomCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -118,12 +163,12 @@ async function run() {
 
     app.post("/order", async (req, res) => {
       const order = req.body;
-      console.log(order);
+      // console.log(order);
       const result = await orderCollection.insertOne(order);
       res.send(result);
     });
 
-    app.get("/my-bookings/:email", verifyToken, async (req, res) => {
+    app.get("/my-bookings/:email", async (req, res) => {
       const email = req.params.email;
       console.log(email);
       const query = { "buyer.email": email };
@@ -131,7 +176,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/api/bookings/:id", async (req, res) => {
+    app.patch("/api/bookings/:id/cancel", async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
