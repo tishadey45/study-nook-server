@@ -1,11 +1,8 @@
-require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const cookieParser = require("cookie-parser");
-
-
 const app = express();
 const port = process.env.PORT || 5000;
+require("dotenv").config();
 
 //  middleware
 app.use(
@@ -15,10 +12,7 @@ app.use(
   }),
 );
 
-
 app.use(express.json());
-app.use(cookieParser());
-
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
