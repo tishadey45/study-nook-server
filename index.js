@@ -9,6 +9,10 @@ const fs = require("fs-extra");
 
 const app = express();
 const port = process.env.PORT || 5000;
+// app.use(cors());
+
+
+
 
 //  middleware
 app.use(
@@ -69,22 +73,22 @@ const client = new MongoClient(uri, {
 });
 
 // verify token
-// function verifyToken(req, res, next) {
-//   const token = req.cookies.token;
-//   console.log(token);
-//   if (!token) {
-//     return res
-//       .status(401)
-//       .send({ error: true, message: "Unauthorized access" });
-//   }
-//   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
-//     if (err) {
-//       return res.status(403).send({ error: true, message: "Forbidden access" });
-//     }
-//     req.decoded = decoded;
-//     next();
-//   });
-// }
+function verifyToken(req, res, next) {
+  const token = req.cookies.token;
+  console.log(token);
+  if (!token) {
+    return res
+      .status(401)
+      .send({ error: true, message: "Unauthorized access" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ error: true, message: "Forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
 
 async function run() {
   try {
@@ -96,48 +100,52 @@ async function run() {
     const roomCollection = db.collection("rooms");
     const orderCollection = db.collection("orders");
 
-    // //   JWT
-    // app.post("/jwt", (req, res) => {
-    //   const email = req.body;
-    //   const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
-    //     expiresIn: "24h",
-    //   });
-    //   res
-    //     .cookie("token", token, {
-    //       httpOnly: true,
-    //       secure: true,
-    //       sameSite: "none",
-    //     })
-    //     .send({ success: true });
-    // });
-
-    // app.post("/add-room", async (req, res) => {
-    //   const user = req.body;
-    //   console.log(user);
-    //   const result = await roomCollection.insertOne(user);
-    //   res.send(result);
-    // });
-
-    app.post("/add-room",
-      //  upload.single("image"), 
-       async (req, res) => {
-      try {
-        // const image = await cloudinary.uploader.upload(req.file.path, {
-        //   folder: "study-nook",
-        // });
-        // await fs.remove(req.file.path);
-        // req.body.image = image.secure_url;
-        req.body.organizer = JSON.parse(req.body.organizer);
-        req.body.amenities = JSON.parse(req.body.amenities);
-        const rooms = req.body;
-        // console.log("rooms",rooms)
-        const result = await roomCollection.insertOne(rooms);
-        res.send(result);
-      } catch (error) {
-        console.error("Error occurred while adding room:", error);
-        res.status(500).send({ error: true, message: "Internal server error" });
-      }
+    //   JWT
+    app.post("/jwt", (req, res) => {
+      const email = req.body;
+      const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "24h",
+      });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+        })
+        .send({ success: true });
     });
+
+    app.post("/add-room", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const result = await roomCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.post(
+      "/add-room",
+       upload.single("image"),
+      async (req, res) => {
+        try {
+          const image = await cloudinary.uploader.upload(req.file.path, {
+            folder: "study-nook",
+          });
+          await fs.remove(req.file.path);
+          req.body.image = image.secure_url;
+          req.body.organizer = JSON.parse(req.body.organizer);
+          req.body.amenities = JSON.parse(req.body.amenities);
+          const rooms = req.body;
+          // console.log("rooms",rooms)
+          const result = await roomCollection.insertOne(rooms);
+          res.send(result);
+        } catch (error) {
+          console.error("Error occurred while adding room:", error);
+          res
+            .status(500)
+            .send({ error: true, message: "Internal server error" });
+        }
+      },
+    );
 
     app.get("/rooms", async (req, res) => {
       const result = await roomCollection.find().toArray();
