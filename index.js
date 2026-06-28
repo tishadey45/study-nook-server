@@ -9,10 +9,6 @@ const fs = require("fs-extra");
 
 const app = express();
 const port = process.env.PORT || 5000;
-// app.use(cors());
-
-
-
 
 //  middleware
 app.use(
@@ -21,29 +17,7 @@ app.use(
     credentials: true,
   }),
 );
-// app.options("*", cors());
 
-// const allowedOrigins = [
-//   "http://localhost:3000",
-//   "https://study-nook-client.vercel.app",
-// ];
-
-// app.use(
-//   cors({
-//     origin: function (origin, callback) {
-//       console.log("Origin:", origin);
-
-//       if (!origin) return callback(null, true);
-
-//       if (allowedOrigins.includes(origin)) {
-//         return callback(null, true);
-//       }
-
-//       return callback(new Error("Not allowed by CORS"));
-//     },
-//     credentials: true,
-//   })
-// );
 
 app.use(express.json());
 app.use(cookieParser());
@@ -75,7 +49,7 @@ const client = new MongoClient(uri, {
 // verify token
 function verifyToken(req, res, next) {
   const token = req.cookies.token;
-  console.log(token);
+  // console.log(token);
   if (!token) {
     return res
       .status(401)
@@ -115,12 +89,12 @@ async function run() {
         .send({ success: true });
     });
 
-    app.post("/add-room", async (req, res) => {
-      const user = req.body;
-      console.log(user);
-      const result = await roomCollection.insertOne(user);
-      res.send(result);
-    });
+    // app.post("/add-room", async (req, res) => {
+    //   const user = req.body;
+    //   console.log(user);
+    //   const result = await roomCollection.insertOne(user);
+    //   res.send(result);
+    // });
 
     app.post(
       "/add-room",
