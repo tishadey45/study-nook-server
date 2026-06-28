@@ -3,9 +3,9 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
-// const cloudinary = require("cloudinary").v2;
-// const multer = require("multer");
-// const fs = require("fs-extra");
+const cloudinary = require("cloudinary").v2;
+const multer = require("multer");
+const fs = require("fs-extra");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -46,16 +46,16 @@ app.use(cookieParser());
 
 // cloudinary configuration
 
-// cloudinary.config({
-//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_API_KEY,
-//   api_secret: process.env.CLOUDINARY_API_SECRET,
-// });
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-//multer configuration
-// const upload = multer({
-//   dest: "uploads/",
-// });
+// multer configuration
+const upload = multer({
+  dest: "uploads/",
+});
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.d2ts7wd.mongodb.net/?appName=Cluster0`;
