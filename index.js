@@ -3,9 +3,9 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
-const cloudinary = require("cloudinary").v2;
-const multer = require("multer");
-const fs = require("fs-extra");
+// const cloudinary = require("cloudinary").v2;
+// const multer = require("multer");
+// const fs = require("fs-extra");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -46,16 +46,16 @@ app.use(cookieParser());
 
 // cloudinary configuration
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// cloudinary.config({
+//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//   api_key: process.env.CLOUDINARY_API_KEY,
+//   api_secret: process.env.CLOUDINARY_API_SECRET,
+// });
 
 //multer configuration
-const upload = multer({
-  dest: "uploads/",
-});
+// const upload = multer({
+//   dest: "uploads/",
+// });
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.d2ts7wd.mongodb.net/?appName=Cluster0`;
@@ -118,13 +118,15 @@ async function run() {
     //   res.send(result);
     // });
 
-    app.post("/add-room", upload.single("image"), async (req, res) => {
+    app.post("/add-room",
+      //  upload.single("image"), 
+       async (req, res) => {
       try {
-        const image = await cloudinary.uploader.upload(req.file.path, {
-          folder: "study-nook",
-        });
-        await fs.remove(req.file.path);
-        req.body.image = image.secure_url;
+        // const image = await cloudinary.uploader.upload(req.file.path, {
+        //   folder: "study-nook",
+        // });
+        // await fs.remove(req.file.path);
+        // req.body.image = image.secure_url;
         req.body.organizer = JSON.parse(req.body.organizer);
         req.body.amenities = JSON.parse(req.body.amenities);
         const rooms = req.body;
