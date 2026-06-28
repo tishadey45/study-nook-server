@@ -69,22 +69,22 @@ const client = new MongoClient(uri, {
 });
 
 // verify token
-function verifyToken(req, res, next) {
-  const token = req.cookies.token;
-  console.log(token);
-  if (!token) {
-    return res
-      .status(401)
-      .send({ error: true, message: "Unauthorized access" });
-  }
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
-    if (err) {
-      return res.status(403).send({ error: true, message: "Forbidden access" });
-    }
-    req.decoded = decoded;
-    next();
-  });
-}
+// function verifyToken(req, res, next) {
+//   const token = req.cookies.token;
+//   console.log(token);
+//   if (!token) {
+//     return res
+//       .status(401)
+//       .send({ error: true, message: "Unauthorized access" });
+//   }
+//   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+//     if (err) {
+//       return res.status(403).send({ error: true, message: "Forbidden access" });
+//     }
+//     req.decoded = decoded;
+//     next();
+//   });
+// }
 
 async function run() {
   try {
@@ -96,20 +96,20 @@ async function run() {
     const roomCollection = db.collection("rooms");
     const orderCollection = db.collection("orders");
 
-    //   JWT
-    app.post("/jwt", (req, res) => {
-      const email = req.body;
-      const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "24h",
-      });
-      res
-        .cookie("token", token, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-        })
-        .send({ success: true });
-    });
+    // //   JWT
+    // app.post("/jwt", (req, res) => {
+    //   const email = req.body;
+    //   const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
+    //     expiresIn: "24h",
+    //   });
+    //   res
+    //     .cookie("token", token, {
+    //       httpOnly: true,
+    //       secure: true,
+    //       sameSite: "none",
+    //     })
+    //     .send({ success: true });
+    // });
 
     // app.post("/add-room", async (req, res) => {
     //   const user = req.body;
