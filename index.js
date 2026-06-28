@@ -7,9 +7,8 @@ require("dotenv").config();
 //  middleware
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://study-nook-client.vercel.app"],
-    credentials: true,
-  }),
+    origin: true,
+  })
 );
 
 app.use(express.json());
